@@ -8,7 +8,7 @@ try:
     from openai import OpenAI
     OPENAI_IMPORT_ERROR: Optional[Exception] = None
 except ImportError as exc:  # pragma: no cover - depends on runtime env deps
-    OpenAI = Any  # type: ignore[assignment]
+    OpenAI = None
     OPENAI_IMPORT_ERROR = exc
 
 from client import ModelcompressgymEnv
@@ -25,6 +25,7 @@ MAX_STEPS = 15
 TEMPERATURE = 0.3
 MAX_TOKENS = 300
 SUCCESS_SCORE_THRESHOLD = 0.5
+DEFAULT_SUBMIT_ACTION = '{"action_type": "submit"}'
 
 SYSTEM_PROMPT = textwrap.dedent(
     """
@@ -78,9 +79,9 @@ def build_user_prompt(step: int, obs: ModelcompressgymObservation, last_reward: 
         """
     ).strip()
 
-def get_model_message(client: Optional[OpenAI], step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
+def get_model_message(client: Optional[Any], step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
     if client is None:
-        return '{"action_type": "submit"}'
+        return DEFAULT_SUBMIT_ACTION
     user_prompt = build_user_prompt(step, obs, last_reward, history)
     try:
         completion = client.chat.completions.create(
@@ -99,10 +100,10 @@ def get_model_message(client: Optional[OpenAI], step: int, obs: Modelcompressgym
         return text.strip()
     except Exception as exc:
         print(f"[DEBUG] Model request failed: {exc}", flush=True)
-        return '{"action_type": "submit"}'
+        return DEFAULT_SUBMIT_ACTION
 
 async def main() -> None:
-    client: Optional[OpenAI] = None
+    client: Optional[Any] = None
     if OPENAI_IMPORT_ERROR is not None:
         print(f"[DEBUG] openai package unavailable; using fallback submit action: {OPENAI_IMPORT_ERROR}", flush=True)
     elif API_KEY:
@@ -168,8 +169,8 @@ async def main() -> None:
             if env is not None:
                 try:
                     await env.close()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    print(f"[DEBUG] env.close() failed: {exc}", flush=True)
                 
     avg_score = total_score / 3.0
     final_success = avg_score >= SUCCESS_SCORE_THRESHOLD
