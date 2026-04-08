@@ -2,7 +2,7 @@ import asyncio
 import os
 import json
 import textwrap
-from typing import Any, List, Optional
+from typing import List, Optional
 
 try:
     from openai import OpenAI
@@ -25,7 +25,7 @@ MAX_STEPS = 15
 TEMPERATURE = 0.3
 MAX_TOKENS = 300
 SUCCESS_SCORE_THRESHOLD = 0.5
-DEFAULT_SUBMIT_ACTION = '{"action_type": "submit"}'
+DEFAULT_SUBMIT_ACTION_JSON = '{"action_type": "submit"}'
 
 SYSTEM_PROMPT = textwrap.dedent(
     """
@@ -79,9 +79,9 @@ def build_user_prompt(step: int, obs: ModelcompressgymObservation, last_reward: 
         """
     ).strip()
 
-def get_model_message(client: Optional[Any], step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
+def get_model_message(client: Optional["OpenAI"], step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
     if client is None:
-        return DEFAULT_SUBMIT_ACTION
+        return DEFAULT_SUBMIT_ACTION_JSON
     user_prompt = build_user_prompt(step, obs, last_reward, history)
     try:
         completion = client.chat.completions.create(
@@ -100,10 +100,10 @@ def get_model_message(client: Optional[Any], step: int, obs: ModelcompressgymObs
         return text.strip()
     except Exception as exc:
         print(f"[DEBUG] Model request failed: {exc}", flush=True)
-        return DEFAULT_SUBMIT_ACTION
+        return DEFAULT_SUBMIT_ACTION_JSON
 
 async def main() -> None:
-    client: Optional[Any] = None
+    client: Optional["OpenAI"] = None
     if OPENAI_IMPORT_ERROR is not None:
         print(f"[DEBUG] openai package unavailable; using fallback submit action: {OPENAI_IMPORT_ERROR}", flush=True)
     elif API_KEY:
