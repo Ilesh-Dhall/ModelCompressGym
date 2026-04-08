@@ -1,0 +1,23 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS
+.DS_Store
+
+# OpenEnv specifics
+.env
+uv.lock
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
