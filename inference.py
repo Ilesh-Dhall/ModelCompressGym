@@ -2,9 +2,14 @@ import asyncio
 import os
 import json
 import textwrap
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from openai import OpenAI
+try:
+    from openai import OpenAI
+    OPENAI_IMPORT_ERROR: Optional[Exception] = None
+except Exception as exc:  # pragma: no cover - depends on runtime env deps
+    OpenAI = Any  # type: ignore[assignment]
+    OPENAI_IMPORT_ERROR = exc
 
 from client import ModelcompressgymEnv
 from models import ModelcompressgymAction, ModelcompressgymObservation
@@ -73,7 +78,9 @@ def build_user_prompt(step: int, obs: ModelcompressgymObservation, last_reward: 
         """
     ).strip()
 
-def get_model_message(client: OpenAI, step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
+def get_model_message(client: Optional[OpenAI], step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
+    if client is None:
+        return '{"action_type": "submit"}'
     user_prompt = build_user_prompt(step, obs, last_reward, history)
     try:
         completion = client.chat.completions.create(
@@ -95,14 +102,23 @@ def get_model_message(client: OpenAI, step: int, obs: ModelcompressgymObservatio
         return '{"action_type": "submit"}'
 
 async def main() -> None:
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    client: Optional[OpenAI] = None
+    if OPENAI_IMPORT_ERROR is not None:
+        print(f"[DEBUG] openai package unavailable; using fallback submit action: {OPENAI_IMPORT_ERROR}", flush=True)
+    elif API_KEY:
+        try:
+            client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+        except Exception as exc:
+            print(f"[DEBUG] OpenAI client initialization failed: {exc}", flush=True)
+    else:
+        print("[DEBUG] Missing HF_TOKEN/API_KEY; using fallback submit action.", flush=True)
     
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
     
     # We test on 3 tasks (easy, medium, hard). In the hackathon run, we expect it to loop three tasks successfully
     total_score = 0.0
     for task_iter in range(3):
-        env = await ModelcompressgymEnv.from_docker_image(IMAGE_NAME, tag=f"task_{task_iter}")
+        env: Optional[ModelcompressgymEnv] = None
         history: List[str] = []
         rewards: List[float] = []
         steps_taken = 0
@@ -110,6 +126,7 @@ async def main() -> None:
         success = False
         
         try:
+            env = await ModelcompressgymEnv.from_docker_image(IMAGE_NAME, tag=f"task_{task_iter}")
             result = await env.reset()
             obs = result.observation
             last_reward = 0.0
@@ -148,14 +165,18 @@ async def main() -> None:
             score = min(max(score, 0.0), 1.0)
             total_score += score
         finally:
-            try:
-                await env.close()
-            except:
-                pass
+            if env is not None:
+                try:
+                    await env.close()
+                except:
+                    pass
                 
     avg_score = total_score / 3.0
     final_success = avg_score >= SUCCESS_SCORE_THRESHOLD
     log_end(success=final_success, steps=steps_taken, score=avg_score, rewards=[avg_score])
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as exc:
+        print(f"[FATAL] inference.py failed gracefully: {exc}", flush=True)
