@@ -7,7 +7,7 @@ from typing import Any, List, Optional
 try:
     from openai import OpenAI
     OPENAI_IMPORT_ERROR: Optional[Exception] = None
-except Exception as exc:  # pragma: no cover - depends on runtime env deps
+except ImportError as exc:  # pragma: no cover - depends on runtime env deps
     OpenAI = Any  # type: ignore[assignment]
     OPENAI_IMPORT_ERROR = exc
 
@@ -168,7 +168,7 @@ async def main() -> None:
             if env is not None:
                 try:
                     await env.close()
-                except:
+                except Exception:
                     pass
                 
     avg_score = total_score / 3.0
