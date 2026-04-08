@@ -1,0 +1,3 @@
+id: medium_compression
+name: Medium Compression Task
+description: Focus on quantization for size footprint reduction while maintaining a 92% accuracy.

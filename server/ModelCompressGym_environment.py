@@ -329,12 +329,12 @@ class ModelcompressgymEnvironment(Environment):
             win_flops = current_flops <= self.target_flops if self.task_difficulty == "hard" else True
             
             if win_acc and win_params and win_size and win_flops:
-                reward = 1.0  # Absolute flawless score
+                reward = 0.99  # Changed from 1.0 to comply with strict (0, 1) bounds
             else:
                 # Partial Grader score based on proximity
-                score = 0.0
+                score = 0.01  # Changed from 0.0 to comply with strict (0, 1) bounds
                 if win_acc:
-                    score += 0.4
+                    score += 0.38  # Adjusted so max possible score (0.01 + 0.38 + 0.6) stays <= 0.99
                     if self.task_difficulty == "easy":
                         progress = (self.initial_params - current_params) / (self.initial_params - self.target_params + 1e-6)
                         score += 0.6 * max(0.0, min(1.0, progress))
@@ -346,8 +346,8 @@ class ModelcompressgymEnvironment(Environment):
                         prog2 = (self.initial_size - current_size) / (self.initial_size - self.target_size_mb + 1e-6)
                         score += 0.6 * max(0.0, min(1.0, (prog1+prog2)/2.0))
                 
-                # Replace the reward with strict grading logic (0.0 -> 1.0)
-                reward = score
+                # Replace the reward with strict grading logic enforcing (0, 1) bounds
+                reward = max(0.01, min(0.99, score))
             
         return ModelcompressgymObservation(
             total_params=current_params,
