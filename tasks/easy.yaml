@@ -1,3 +1,0 @@
-id: easy_compression
-name: Easy Compression Task
-description: Compress the model focusing purely on pruning parameters while maintaining a 94% accuracy.

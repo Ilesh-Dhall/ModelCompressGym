@@ -1,3 +1,0 @@
-id: hard_compression
-name: Hard Compression Task
-description: Strict drop in both Memory (Quantization) & FLOPs/Params (Pruning) while maintaining 90% accuracy.

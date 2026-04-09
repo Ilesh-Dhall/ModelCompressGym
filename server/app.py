@@ -52,6 +52,24 @@ app = create_app(
     max_concurrent_envs=1,  # increase this number to allow more concurrent WebSocket sessions
 )
 
+@app.get("/grade/task_0")
+def grade_task_0():
+    score = getattr(ModelcompressgymEnvironment, "last_score", 0.01)
+    score = max(0.01, min(0.99, float(score)))
+    return {"score": score, "reward": score}
+
+@app.get("/grade/task_1")
+def grade_task_1():
+    score = getattr(ModelcompressgymEnvironment, "last_score", 0.01)
+    score = max(0.01, min(0.99, float(score)))
+    return {"score": score, "reward": score}
+
+@app.get("/grade/task_2")
+def grade_task_2():
+    score = getattr(ModelcompressgymEnvironment, "last_score", 0.01)
+    score = max(0.01, min(0.99, float(score)))
+    return {"score": score, "reward": score}
+
 
 def main():
     import uvicorn

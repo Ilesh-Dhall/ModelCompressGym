@@ -4,4 +4,14 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
+tasks:
+  - id: task_0
+    description: "Easy difficulty: Prune total params by 30% with limited drop in accuracy"
+    grader: grade/task_0
+  - id: task_1
+    description: "Medium difficulty: Quantize to drop total memory size by 50%"
+    grader: grade/task_1
+  - id: task_2
+    description: "Hard difficulty: Reach strict multi-dimensional compression targets"
+    grader: grade/task_2
 

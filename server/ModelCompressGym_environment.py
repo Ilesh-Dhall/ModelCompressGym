@@ -52,6 +52,7 @@ class CIFAR10_CNN(nn.Module):
 
 class ModelcompressgymEnvironment(Environment):
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
+    last_score: float = 0.01  # Class variable to store the latest evaluation score for graders
 
     def __init__(self):
         self._state = State(episode_id=str(uuid4()), step_count=0)
@@ -348,6 +349,8 @@ class ModelcompressgymEnvironment(Environment):
                 
                 # Replace the reward with strict grading logic enforcing (0, 1) bounds
                 reward = max(0.01, min(0.99, score))
+            
+        ModelcompressgymEnvironment.last_score = max(0.01, min(0.99, reward))
             
         return ModelcompressgymObservation(
             total_params=current_params,

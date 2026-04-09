@@ -42,6 +42,20 @@ Defined by `ModelcompressgymObservation` detailing the immediate model state.
 ## Partial Rewards
 A `+0.1` x `Sparsity Amount` is immediately given to incentivize size reduction incrementally. The agent is heavily penalized `-0.2` or higher if it prunes indiscriminately and accuracy falls below the `target_accuracy` threshold during the trajectory. Finally an episode score from `[0.0 to 1.0]` is given mathematically resolving both Size Ratio and Accuracy Constraints on `submit`.
 
+## Using the Hugging Face Space UI (Gradio Web Interface)
+
+When this environment is hosted as a Hugging Face Space using the OpenEnv protocol, it automatically provisions an interactive Web UI (powered by Gradio). You can use this UI to manually test the environment step-by-step before wiring up agents:
+
+1. **Navigate to the Space App:** When deployed on Hugging Face Spaces (or run locally at `http://localhost:8000/web`), navigate to the visual interface tab.
+2. **Start a New Episode (Reset):** Click the **"Reset"** button to initialize a fresh environment simulation. The interface will render the first observation, displaying current targets, constraints (`target_accuracy`, `target_size_mb`), and the `task_difficulty`.
+3. **Submit an Action (Step):** The default GUI auto-generates forms based on the Pydantic schema for `ModelcompressgymAction`. Fill in the JSON or form fields to perform a manual step.
+   * **`action_type`:** Select or type `prune`, `quantize`, `evaluate`, or `submit`.
+   * **`layer_name`:** e.g., `fc1`, `conv1`.
+   * **`amount`:** e.g., `0.5` (if using pruning).
+   * **Click "Step Action"** to apply it.
+4. **Observe the Transition:** The right-hand panel (or the next row) will update, showing the new `observation`. Watch the `model_size_mb`, `current_accuracy`, and partial `reward` change in real-time based on the consequence of your choice.
+5. **Evaluate and Grade:** When the model has successfully been compressed past the task's criteria lines, dispatch an action payload of `{"action_type": "submit"}`. This triggers OpenEnv to freeze the session and calculate the final Grade Score shown on screen strictly bounded between `0.01` and `0.99`.
+
 ## Baseline Inference Script
 To use our `inference.py` to baseline models against this Gym using standard OpenEnv configuration protocols:
 
