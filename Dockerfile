@@ -72,6 +72,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/env:$PYTHONPATH"
 
 ENV ENABLE_WEB_INTERFACE=true
+ENV ENV_README_PATH=/app/env/README.md
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

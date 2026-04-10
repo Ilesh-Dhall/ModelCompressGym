@@ -52,9 +52,9 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
         flush=True,
     )
 
-def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+def log_end(task: str, success: bool, steps: int, score: float, rewards: List[float]) -> None:
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
-    print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
+    print(f"[END] task={task} success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
 
 def build_user_prompt(step: int, obs: ModelcompressgymObservation, last_reward: float, history: List[str]) -> str:
     history_block = "\n".join(history[-4:]) if history else "None"
@@ -97,19 +97,20 @@ def get_model_message(client: OpenAI, step: int, obs: ModelcompressgymObservatio
 async def main() -> None:
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
     
-    log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
+    # Spin up the environment container exactly once, so internal counters progress
+    env = await ModelcompressgymEnv.from_docker_image(IMAGE_NAME)
     
     # We test on 3 tasks (easy, medium, hard). In the hackathon run, we expect it to loop three tasks successfully
-    total_score = 0.0
-    for task_iter in range(3):
-        env = await ModelcompressgymEnv.from_docker_image(IMAGE_NAME, tag=f"task_{task_iter}")
-        history: List[str] = []
-        rewards: List[float] = []
-        steps_taken = 0
-        score = 0.0
-        success = False
-        
-        try:
+    try:
+        for task_iter in range(3):
+            task_id = f"task_{task_iter}"
+            log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
+            
+            history: List[str] = []
+            rewards: List[float] = []
+            steps_taken = 0
+            score = 0.0
+            
             result = await env.reset()
             obs = result.observation
             last_reward = 0.0
@@ -146,16 +147,14 @@ async def main() -> None:
                     break
 
             score = min(max(score, 0.0), 1.0)
-            total_score += score
-        finally:
-            try:
-                await env.close()
-            except:
-                pass
-                
-    avg_score = total_score / 3.0
-    final_success = avg_score >= SUCCESS_SCORE_THRESHOLD
-    log_end(success=final_success, steps=steps_taken, score=avg_score, rewards=[avg_score])
+            
+            success = score >= SUCCESS_SCORE_THRESHOLD
+            log_end(task=task_id, success=success, steps=steps_taken, score=score, rewards=rewards)
+    finally:
+        try:
+            await env.close()
+        except:
+            pass
 
 if __name__ == "__main__":
     asyncio.run(main())

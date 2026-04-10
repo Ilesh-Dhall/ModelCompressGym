@@ -6,12 +6,21 @@ app: server.app:app
 port: 8000
 tasks:
   - id: task_0
-    description: "Easy difficulty: Prune total params by 30% with limited drop in accuracy"
-    grader: grade/task_0
+    difficulty: easy
+    max_steps: 15
+    grader:
+      type: llm
+      prompt_template: "Score the model compression trajectory from 0.0 to 1.0 based on how well the agent pruned total params by 30% with limited drop in accuracy."
   - id: task_1
-    description: "Medium difficulty: Quantize to drop total memory size by 50%"
-    grader: grade/task_1
+    difficulty: medium
+    max_steps: 15
+    grader:
+      type: llm
+      prompt_template: "Score the model compression trajectory from 0.0 to 1.0 based on how well the agent quantized the model to drop total memory size by 50%."
   - id: task_2
-    description: "Hard difficulty: Reach strict multi-dimensional compression targets"
-    grader: grade/task_2
+    difficulty: hard
+    max_steps: 15
+    grader:
+      type: llm
+      prompt_template: "Score the model compression trajectory from 0.0 to 1.0 based on how well the agent reached strict multi-dimensional compression targets."
 
