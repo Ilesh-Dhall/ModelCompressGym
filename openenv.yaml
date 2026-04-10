@@ -10,17 +10,17 @@ tasks:
     max_steps: 15
     grader:
       type: llm
-      prompt_template: "Score the model compression trajectory from 0.0 to 1.0 based on how well the agent pruned total params by 30% with limited drop in accuracy."
+      prompt_template: "Score the model compression trajectory strictly between 0.01 and 0.99 (do not output 0.0 or 1.0) based on how well the agent pruned params by 30% with limited drop in accuracy."
   - id: task_1
     difficulty: medium
     max_steps: 15
     grader:
       type: llm
-      prompt_template: "Score the model compression trajectory from 0.0 to 1.0 based on how well the agent quantized the model to drop total memory size by 50%."
+      prompt_template: "Score the model compression trajectory strictly between 0.01 and 0.99 (do not output 0.0 or 1.0) based on how well the agent quantized the model to drop total memory size by 50%."
   - id: task_2
     difficulty: hard
     max_steps: 15
     grader:
       type: llm
-      prompt_template: "Score the model compression trajectory from 0.0 to 1.0 based on how well the agent reached strict multi-dimensional compression targets."
+      prompt_template: "Score the model compression trajectory strictly between 0.01 and 0.99 (do not output 0.0 or 1.0) based on how well the agent reached strict multi-dimensional compression targets."
 

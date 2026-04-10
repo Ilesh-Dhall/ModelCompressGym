@@ -43,13 +43,12 @@ except ImportError:
     from ModelCompressGym.server.ModelCompressGym_environment import ModelcompressgymEnvironment
 
 
-# Create the app with web interface and README integration
 app = create_app(
     ModelcompressgymEnvironment,
     ModelcompressgymAction,
     ModelcompressgymObservation,
     env_name="ModelCompressGym",
-    max_concurrent_envs=1,  # increase this number to allow more concurrent WebSocket sessions
+    max_concurrent_envs=1,
 )
 
 @app.get("/grade/task_0")

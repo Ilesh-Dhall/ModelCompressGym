@@ -97,10 +97,8 @@ def get_model_message(client: OpenAI, step: int, obs: ModelcompressgymObservatio
 async def main() -> None:
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
     
-    # Spin up the environment container exactly once, so internal counters progress
     env = await ModelcompressgymEnv.from_docker_image(IMAGE_NAME)
     
-    # We test on 3 tasks (easy, medium, hard). In the hackathon run, we expect it to loop three tasks successfully
     try:
         for task_iter in range(3):
             task_id = f"task_{task_iter}"
@@ -146,7 +144,10 @@ async def main() -> None:
                     score = reward
                     break
 
-            score = min(max(score, 0.0), 1.0)
+            if not done:
+                score = last_reward
+
+            score = min(max(score, 0.01), 0.99)
             
             success = score >= SUCCESS_SCORE_THRESHOLD
             log_end(task=task_id, success=success, steps=steps_taken, score=score, rewards=rewards)
